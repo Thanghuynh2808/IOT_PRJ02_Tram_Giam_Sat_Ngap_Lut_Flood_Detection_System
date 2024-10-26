@@ -10,12 +10,6 @@
 
 #include <HCSR04.h>
 
-/*********
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-async-web-server-espasyncwebserver-library/
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*********/
 #define BLYNK_PRINT Serial
 // You should get Auth Token in the Blynk App.
 #define BLYNK_TEMPLATE_ID           "TMPL6hx33K0A7"
