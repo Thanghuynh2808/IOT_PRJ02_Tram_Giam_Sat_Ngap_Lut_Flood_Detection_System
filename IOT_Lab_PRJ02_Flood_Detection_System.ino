@@ -193,27 +193,39 @@ void TaskBuzzerWarning(void *pvParameters) {
 bool outRange = 0;
 void TaskSRF04Sensor(void *pvParameters) {
     while(1) {
-      int  distanceMeasure = ultrasonicSensor.getMedianFilterDistance(); //pass 3 measurements through median filter, better result on moving obstacles
-      distanceMeasure = srf04filter.updateEstimate(distanceMeasure);
-      if (distanceMeasure < 400 &&  distanceMeasure > 20) {
+      int  srf04ValueTemp = ultrasonicSensor.getMedianFilterDistance(); 
+      srf04ValueTemp = srf04filter.updateEstimate(srf04ValueTemp);
+      if (srf04ValueTemp < 400 &&  srf04ValueTemp > 20) {
           outRange = 0;
-          Serial.print("distanceMeasure: ");
-          Serial.print(distanceMeasure, 1);
+          Serial.print("srf04ValueTemp: ");
+          Serial.print(srf04ValueTemp, 1);
           Serial.println(F(" cm"));
-          srf04Value = distanceMeasure;
-          waterValue = EheightInstallSensor - srf04Value;
-          if(waterValue < 0) waterValue = 0;
+
+          srf04Value = srf04ValueTemp;
+
+          if (!isSensorCalibrated) { 
+            EheightInstallSensor = srf04Value; // Lưu giá trị đầu tiên từ cảm biến (khoảng cách từ cảm biến tới mặt đất)
+            EthresholdWarning = EheightInstallSensor/2; // lấy giá trị ngưỡng = 1/2 đất
+            isSensorCalibrated = true; 
+                                  }
+              
+          waterValue = EheightInstallSensor - srf04Value;  // lấy giá trị nước
+
+
+          if(waterValue < 0) waterValue = 0; // khi khoảng cách tới đất nhỏ hơn srf04Value ( nước hạ xuống dưới đất) , set lại water value = 0
+
           Serial.print("waterValue: ");
-          Serial.print(waterValue);
+          Serial.print(waterValue); 
           Serial.println(F(" cm"));
-          if(waterValue < EthresholdWarning) waterWarning = DISABLE;
-          else waterWarning = ENABLE;
+
+          if(waterValue < EthresholdWarning) waterWarning = DISABLE; 
+          else waterWarning = ENABLE ; // bật cảnh báo
       }
       else {
         outRange = 1;
-        Serial.println(F("SRF04 out of range"));
-        waterWarning = ENABLE;
-        waterValue = EheightInstallSensor;
+        Serial.println(F("SRF04 out of range")); // ngoài phạm vi đo
+        waterWarning = ENABLE; // cảnh báo
+        waterValue = EheightInstallSensor; // trường hợp nước ngập cảm biến , lấy giá trị lớn nhất cảm biến đo được ( kc từ cảm biến tới đất )
       }   
       delay(200);
     }
